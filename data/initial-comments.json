@@ -98,7 +98,7 @@
         "likes": 3,
         "isEdited": false,
         "parentId": "c12",
-        "attachment": "./images/cat2.jpeg"
+        "attachment": "/images/cat2.jpeg"
     },
     {
         "id": "c11",
@@ -118,6 +118,6 @@
         "likes": 2,
         "isEdited": false,
         "parentId": null,
-        "attachment": "./images/cat1.jpg"
+        "attachment": "/images/cat1.jpg"
     }
 ]
