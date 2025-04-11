@@ -5,14 +5,13 @@ class CommentItem extends HTMLElement {
         this._commentData = null;
         this._currentUser = null;
         this._isLiked = false;
-        this._repliesCollapsed = false; // Состояние свернутости ответов
-        // Рендер вызывается в connectedCallback или при установке данных
+        this._repliesCollapsed = false;
+
     }
 
     set commentData(data) {
         this._commentData = data;
-        // Вызываем render, если компонент уже в DOM.
-        // Если еще нет, render будет вызван в connectedCallback.
+
         if (this.isConnected) {
             this.render();
         }
@@ -24,8 +23,7 @@ class CommentItem extends HTMLElement {
 
     set currentUser(user) {
         this._currentUser = user;
-        // Можно перерисовать, если видимость кнопок зависит от пользователя,
-        // но лучше делать это в render, когда все данные уже есть.
+
         if (this.isConnected && this._commentData) {
             this.render();
         }
@@ -49,8 +47,7 @@ class CommentItem extends HTMLElement {
     }
 
     connectedCallback() {
-        // Всегда вызываем render при подключении.
-        // Метод render сам проверит, есть ли данные.
+
         this.render();
         this.addEventListeners();
     }
@@ -58,7 +55,7 @@ class CommentItem extends HTMLElement {
     formatDate(isoString) {
         if (!isoString) return '';
         const date = new Date(isoString);
-        // Используем более простой формат DD.MM.YYYY HH:mm
+
         const options = {
             day: '2-digit', month: '2-digit', year: 'numeric',
             hour: '2-digit', minute: '2-digit'
@@ -96,9 +93,7 @@ class CommentItem extends HTMLElement {
                 this.render();
             }
 
-            // Клики внутри форм ответа/редактирования будут обработаны 
-            // их собственными слушателями, добавленными в _create...Form
-            // Поэтому здесь больше ничего делать не нужно для них.
+
         });
     }
 
@@ -243,9 +238,9 @@ class CommentItem extends HTMLElement {
             if (!file) return;
 
             try {
-                // Проверяем размер файла (ограничим до 2MB)
-                if (file.size > 2 * 1024 * 1024) {
-                    alert('Размер файла не должен превышать 2MB');
+                // Проверяем размер файла (ограничим до 5MB)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('Размер файла не должен превышать 5MB');
                     fileInput.value = '';
                     return;
                 }

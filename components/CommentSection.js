@@ -2,17 +2,17 @@ class CommentSection extends HTMLElement {
     constructor() {
         super();
         this.attachShadow({ mode: 'open' });
-        this._comments = []; // Приватное свойство для хранения комментариев
+        this._comments = [];
         this._currentUser = null;
-        this._likedComments = new Set(); // Инициализируем пустое множество лайков
-        this.render(); // Рендерим начальную структуру
+        this._likedComments = new Set();
+        this.render();
     }
 
     // Определяем сеттеры для свойств, чтобы реагировать на их изменение
     set comments(value) {
         this._comments = value;
-        this.renderComments(); // Перерисовываем только список комментариев
-        this.updateCommentCount(); // Обновляем счетчик
+        this.renderComments();
+        this.updateCommentCount();
     }
 
     get comments() {
@@ -21,7 +21,7 @@ class CommentSection extends HTMLElement {
 
     set currentUser(value) {
         this._currentUser = value;
-        // Можно добавить логику, если имя пользователя влияет на отображение секции
+
     }
 
     get currentUser() {
@@ -32,8 +32,7 @@ class CommentSection extends HTMLElement {
     set likedComments(value) {
         if (value instanceof Set) {
             this._likedComments = value;
-            // Перерисовываем комментарии, чтобы обновить состояние isLiked у comment-item
-            // Это не оптимально, но проще для начала
+
             this.renderComments();
         } else {
             console.error('likedComments must be a Set');
@@ -42,12 +41,12 @@ class CommentSection extends HTMLElement {
     get likedComments() { return this._likedComments; }
 
     connectedCallback() {
-        // Слушатели событий добавляем один раз при подключении компонента
+
         this.addEventListeners();
-        // Начальное отображение комментариев произойдет через сеттер `comments`
+
     }
 
-    // Метод для генерации уникальных ID (простой вариант)
+    // Метод для генерации уникальных ID
     generateId() {
         return 'c' + Date.now().toString(36) + Math.random().toString(36).substring(2);
     }
@@ -70,7 +69,7 @@ class CommentSection extends HTMLElement {
         }));
     }
 
-    // Добавляем метод для конвертации файла в Base64
+    // Метод для конвертации файла в Base64
     fileToBase64(file) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -101,9 +100,9 @@ class CommentSection extends HTMLElement {
             if (!file) return;
 
             try {
-                // Проверяем размер файла (ограничим до 2MB для localStorage)
-                if (file.size > 2 * 1024 * 1024) {
-                    alert('Размер файла не должен превышать 2MB');
+                // Проверяем размер файла (ограничим до 5MB для localStorage)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('Размер файла не должен превышать 5MB');
                     fileInput.value = '';
                     return;
                 }
@@ -144,7 +143,7 @@ class CommentSection extends HTMLElement {
                     isEdited: false,
                     parentId: null,
                     replies: [],
-                    attachment: currentAttachment // Добавляем вложение, если оно есть
+                    attachment: currentAttachment
                 };
                 this._comments.unshift(newComment);
                 this.renderComments();
@@ -179,22 +178,22 @@ class CommentSection extends HTMLElement {
                 this.handleReply(event.detail.commentElement);
             });
 
-            // ВОЗВРАЩАЕМ слушатель edit-comment
+
             listContainer.addEventListener('edit-comment', (event) => {
                 this.handleEdit(event.detail.commentElement);
             });
 
-            // Слушатель для нового ответа
+
             listContainer.addEventListener('add-reply', (event) => {
                 this.handleAddReply(event.detail);
             });
 
-            // Слушатель для сохранения редактирования
+
             listContainer.addEventListener('save-edit', (event) => {
                 this.handleSaveEdit(event.detail);
             });
 
-            // Слушатель для открытия изображения
+
             listContainer.addEventListener('open-image', (event) => {
                 this._openImageModal(event.detail.imageUrl);
             });
@@ -202,17 +201,17 @@ class CommentSection extends HTMLElement {
             console.error("Comments list container not found during addEventListeners");
         }
 
-        // Обработчик клика на превью в форме добавления комментария
+
         previewImage.addEventListener('click', (event) => {
             if (previewImage.src) {
-                event.stopPropagation(); // Останавливаем распространение события
+                event.stopPropagation();
                 this._openImageModal(previewImage.src);
             }
         });
     }
 
     render() {
-        // Очищаем текущее содержимое shadow DOM
+
         this.shadowRoot.innerHTML = '';
 
         // Получаем шаблон из документа
@@ -255,13 +254,13 @@ class CommentSection extends HTMLElement {
         }
 
         const sortedComments = this._applySorting(this._comments);
-        // const commentsMap = new Map(this._comments.map(c => [c.id, c])); // Карта пока не используется активно
+
 
         const createCommentElement = (commentData) => {
             const commentElement = document.createElement('comment-item');
             commentElement.commentData = commentData;
             commentElement.currentUser = this._currentUser;
-            // Передаем информацию о лайке
+
             commentElement.isLiked = this._likedComments.has(commentData.id);
 
             const repliesData = sortedComments.filter(reply => reply.parentId === commentData.id);
@@ -282,7 +281,7 @@ class CommentSection extends HTMLElement {
             listContainer.appendChild(commentElement);
         });
 
-        // Восстанавливаем прокрутку
+
         listContainer.scrollTop = scrollPosition;
     }
 
@@ -325,13 +324,13 @@ class CommentSection extends HTMLElement {
         let likesUpdated = false;
 
         if (this._likedComments.has(commentId)) {
-            // --- Логика АНЛАЙКА ---
+
             commentData.likes = Math.max(0, commentData.likes - 1);
             this._likedComments.delete(commentId);
             isNowLiked = false;
             likesUpdated = true;
         } else {
-            // --- Логика ЛАЙКА ---
+
             commentData.likes += 1;
             this._likedComments.add(commentId);
             isNowLiked = true;
@@ -373,20 +372,19 @@ class CommentSection extends HTMLElement {
             timestamp: new Date().toISOString(),
             likes: 0,
             isEdited: false,
-            parentId: parentId, // Указываем родителя
-            replies: [], // Ответы пока не могут иметь свои ответы (по ТЗ)
-            attachment: attachment // Добавляем вложение, если оно есть
+            parentId: parentId,
+            replies: [],
+            attachment: attachment
         };
 
-        // Добавляем ответ в основной массив комментариев
-        // Важно добавлять именно в основной массив, так как renderComments его использует
+
         this._comments.push(newReply);
 
-        // Перерисовываем весь список, чтобы ответ появился в нужном месте
+
         this.renderComments();
-        // Обновляем счетчик комментариев
+
         this.updateCommentCount();
-        // Сохраняем обновленный список в localStorage
+
         this.dispatchUpdate();
     }
 
@@ -414,18 +412,17 @@ class CommentSection extends HTMLElement {
         if (commentElement) {
             // Передаем обновленные данные
             commentElement.commentData = updatedComment;
-            // Убеждаемся, что форма редактирования скрыта (хотя она должна скрываться сама)
-            // commentElement.disableEditMode();
+
         } else {
-            // Если элемент не найден, перерисовываем все
+
             this.renderComments();
         }
 
-        // Сохраняем изменения в localStorage
+
         this.dispatchUpdate();
     }
 
-    // Методы для удаления, фильтрации будут здесь
+
 
     // Метод для инициализации модального окна
     _initImageModal() {
@@ -434,23 +431,23 @@ class CommentSection extends HTMLElement {
 
         if (!modal || !closeBtn) return;
 
-        // Закрытие модального окна при клике на кнопку закрытия
+
         closeBtn.addEventListener('click', (e) => {
-            e.preventDefault(); // Предотвращаем стандартное поведение
-            e.stopPropagation(); // Останавливаем распространение события
+            e.preventDefault();
+            e.stopPropagation();
             this._closeModal();
         });
 
-        // Закрытие модального окна при клике на фон
+
         modal.addEventListener('click', (e) => {
-            // Проверяем, что клик был именно на фоне, а не на содержимом
+
             if (e.target === modal) {
-                e.stopPropagation(); // Останавливаем распространение
+                e.stopPropagation();
                 this._closeModal();
             }
         });
 
-        // Закрытие по Escape
+
         const handleEscape = (e) => {
             if (e.key === 'Escape' && modal.style.display === 'block') {
                 this._closeModal();
@@ -465,11 +462,11 @@ class CommentSection extends HTMLElement {
         const modal = this.shadowRoot.getElementById('image-modal');
         if (modal) {
             modal.style.display = 'none';
-            document.body.style.overflow = ''; // Восстанавливаем прокрутку
+            document.body.style.overflow = '';
         }
     }
 
-    // Метод для открытия модального окна с заданным изображением
+
     _openImageModal(imageUrl) {
         if (!imageUrl) return;
 
@@ -477,12 +474,12 @@ class CommentSection extends HTMLElement {
         const modalImg = this.shadowRoot.getElementById('modal-image');
 
         if (modal && modalImg) {
-            // Устанавливаем источник изображения
+
             modalImg.src = imageUrl;
 
-            // Показываем модальное окно
+
             modal.style.display = 'block';
-            document.body.style.overflow = 'hidden'; // Запрещаем прокрутку страницы
+            document.body.style.overflow = 'hidden';
         }
     }
 }

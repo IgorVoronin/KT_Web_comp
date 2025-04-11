@@ -1,11 +1,38 @@
-// Импортируем главный компонент секции комментариев
 import './components/CommentSection.js';
-import './components/CommentItem.js'; // Добавим импорт CommentItem
+import './components/CommentItem.js';
 
-const CURRENT_USER = 'Вы'; // Имя текущего пользователя
+const CURRENT_USER = 'Вы';
 const COMMENTS_STORAGE_KEY = 'webcomp_comments';
-const LIKED_COMMENTS_KEY = 'webcomp_liked_comments'; // Новый ключ
+const LIKED_COMMENTS_KEY = 'webcomp_liked_comments';
 const THEME_STORAGE_KEY = 'webcomp_theme';
+
+// Функция для корректировки путей к изображениям в комментариях
+function correctImagePaths(comments) {
+    // Получаем базовый URL репозитория
+    const repoPath = location.pathname.substring(0, location.pathname.lastIndexOf('/'));
+    const baseUrl = window.location.origin + repoPath;
+
+    return comments.map(comment => {
+        if (!comment) return comment;
+
+        let updatedComment = { ...comment };
+
+        // Корректируем пути вида "./images/cat1.jpg"
+        if (updatedComment.attachment && updatedComment.attachment.startsWith('./')) {
+            updatedComment.attachment = baseUrl + updatedComment.attachment.substring(1);
+        }
+
+        // Корректируем пути вида "https://github.com/username/repo/images/cat1.jpg"
+        if (updatedComment.attachment && updatedComment.attachment.includes('/images/') &&
+            updatedComment.attachment.includes('github.com')) {
+            // Извлекаем только часть пути /images/...
+            const imagePath = '/images/' + updatedComment.attachment.split('/images/')[1];
+            updatedComment.attachment = baseUrl + imagePath;
+        }
+
+        return updatedComment;
+    });
+}
 
 async function loadInitialData() {
     try {
@@ -13,31 +40,34 @@ async function loadInitialData() {
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        return await response.json();
+        const comments = await response.json();
+        // Корректируем пути перед возвращением данных
+        return correctImagePaths(comments);
     } catch (error) {
         console.error("Could not load initial comments:", error);
-        return []; // Возвращаем пустой массив в случае ошибки
+        return [];
     }
 }
 
 function getCommentsFromStorage() {
     const storedComments = localStorage.getItem(COMMENTS_STORAGE_KEY);
-    return storedComments ? JSON.parse(storedComments) : null;
+    const comments = storedComments ? JSON.parse(storedComments) : null;
+    // Корректируем пути при чтении из хранилища
+    return comments ? correctImagePaths(comments) : null;
 }
 
 function saveCommentsToStorage(comments) {
     localStorage.setItem(COMMENTS_STORAGE_KEY, JSON.stringify(comments));
 }
 
-// Новые функции для лайков
+
 function getLikedCommentsFromStorage() {
     const storedLikes = localStorage.getItem(LIKED_COMMENTS_KEY);
-    // Храним как массив ID, возвращаем как Set для удобства проверки
     return storedLikes ? new Set(JSON.parse(storedLikes)) : new Set();
 }
 
 function saveLikedCommentsToStorage(likedSet) {
-    // Сохраняем как массив ID
+
     localStorage.setItem(LIKED_COMMENTS_KEY, JSON.stringify(Array.from(likedSet)));
 }
 
@@ -70,7 +100,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         comments = await loadInitialData();
 
         saveCommentsToStorage(comments);
-        // При первой загрузке очищаем и лайки (если они вдруг остались)
         likedComments = new Set();
         saveLikedCommentsToStorage(likedComments);
     }
@@ -88,7 +117,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             saveThemePreference(newTheme);
         });
     }
-    // --- Конец инициализации темы ---
+
 
     // --- Инициализация компонента комментариев ---
     const commentSection = document.querySelector('comment-section');
@@ -99,11 +128,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         commentSection.addEventListener('commentsUpdated', (event) => {
             saveCommentsToStorage(event.detail.comments);
-            // console.log('Комментарии обновлены...'); // Уберем лишние логи
+
         });
         commentSection.addEventListener('likesUpdated', (event) => {
             saveLikedCommentsToStorage(event.detail.likedComments);
-            // console.log('Лайки обновлены...');
+
         });
     } else {
         console.error('Компонент comment-section не найден на странице.');
