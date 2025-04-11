@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Комментарии Web Component</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <header>
+        <h1>Пример поста с комментариями</h1>
+        <p>Это текст поста или новости, под которым будут отображаться комментарии.</p>
+
+        <!-- Переключатель темы -->
+        <div class="theme-switcher">
+            <label for="theme-toggle">Тёмная тема:</label>
+            <input type="checkbox" id="theme-toggle">
+        </div>
+    </header>
+
+    <main>
+        <!-- Веб-компонент -->
+        <comment-section></comment-section>
+    </main>
+
+    <!-- Шаблоны для комментариев -->
+
+    <template id="comment-item-template">
+        <style>
+            :host {
+                background-color: var(--comment-item-bg, #fff);
+                border: 1px solid var(--comment-item-border-color, #e0e0e0);
+                border-radius: var(--comment-item-border-radius, 5px);
+                padding: var(--comment-item-padding, 10px 15px);
+                box-shadow: var(--comment-item-shadow, 0 1px 3px rgba(0, 0, 0, 0.05));
+                color: var(--comment-text-color, #555);
+                display: block;
+                margin-bottom: 15px;
+                position: relative;
+            }
+
+            .comment-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                margin-bottom: 8px;
+            }
+
+            .author {
+                font-weight: bold;
+                color: var(--comment-author-color, #333);
+            }
+
+            .timestamp {
+                font-size: 0.85em;
+                color: var(--comment-meta-color, #888);
+                text-align: right;
+                white-space: nowrap;
+            }
+
+            .timestamp .edited-mark {
+                font-style: italic;
+                margin-left: 4px;
+            }
+
+            .new-badge {
+                background-color: var(--comment-new-badge-bg, #28a745);
+                color: var(--comment-new-badge-color, white);
+                padding: 2px 6px;
+                font-size: 0.75em;
+                border-radius: 3px;
+                margin-right: 8px;
+                align-self: center;
+            }
+
+            .text {
+                margin-bottom: 12px;
+                line-height: 1.5;
+            }
+
+            /* Стили для вложений */
+            .attachment {
+                margin: 10px 0;
+                max-width: 100px;
+                /* Уменьшаем максимальную ширину */
+                overflow: hidden;
+                border-radius: 4px;
+            }
+
+            .attachment img {
+                max-width: 100%;
+                max-height: 80px;
+                /* Уменьшаем максимальную высоту */
+                border-radius: 4px;
+                display: block;
+                cursor: pointer;
+                /* Указываем, что изображение кликабельно */
+            }
+
+            .actions {
+                display: flex;
+                align-items: center;
+                gap: var(--comment-actions-gap, 15px);
+            }
+
+            .actions button {
+                background: none;
+                border: none;
+                color: var(--comment-action-button-color, #007bff);
+                cursor: pointer;
+                font-size: 0.9em;
+                padding: 0;
+            }
+
+            .actions button:hover {
+                text-decoration: underline;
+            }
+
+            .actions button.edit-btn[hidden] {
+                display: none;
+                /* Надежное скрытие */
+            }
+
+            .likes {
+                font-size: 0.9em;
+                color: var(--comment-meta-color, #555);
+            }
+
+            .likes-icon {
+                margin-right: 3px;
+                color: var(--comment-like-icon-color, #6c757d);
+            }
+
+            .replies {
+                margin-left: 25px;
+                border-left: 2px solid var(--comment-reply-indent-color, #eee);
+                padding-left: 15px;
+                margin-top: 15px;
+            }
+
+            .replies.replies-collapsed {
+                max-height: 0;
+                overflow: hidden;
+            }
+
+            .toggle-replies {
+                margin-top: 10px;
+                padding-left: 15px;
+            }
+
+            .toggle-replies-btn {
+                background: none;
+                border: none;
+                color: var(--comment-meta-color, #6c757d);
+                cursor: pointer;
+                font-size: 0.85em;
+                padding: 0;
+            }
+
+            .toggle-replies-btn:hover {
+                text-decoration: underline;
+            }
+
+            .hidden {
+                display: none !important;
+            }
+
+            /* --- Стили для форм ответа и редактирования --- */
+            .reply-form-inner textarea,
+            .edit-form-inner textarea {
+                width: 98%;
+                min-height: 60px;
+                margin-bottom: 10px;
+                padding: 10px;
+                border: 1px solid var(--comment-form-border-color, #ccc);
+                border-radius: var(--comment-form-border-radius, 4px);
+                resize: vertical;
+                box-sizing: border-box;
+
+                background-color: var(--comment-textarea-bg, #fff);
+                color: var(--comment-textarea-color, #333);
+            }
+
+            .reply-form-inner textarea:focus,
+            .edit-form-inner textarea:focus {
+                border-color: var(--comment-form-border-focus-color, #007bff);
+                outline: none;
+                box-shadow: var(--comment-textarea-focus-shadow, 0 0 0 2px rgba(0, 123, 255, 0.25));
+            }
+
+            .reply-form-actions,
+            .edit-form-actions {
+                margin-top: 5px;
+            }
+
+            /* Общие стили для кнопок форм */
+            .reply-form-inner button,
+            .edit-form-inner button {
+                padding: 6px 12px;
+                font-size: 0.9em;
+                border-radius: var(--comment-form-border-radius, 4px);
+                cursor: pointer;
+                border: none;
+                transition: background-color 0.2s;
+            }
+
+            /* Кнопка Отправить/Сохранить */
+            .reply-form-inner .submit-reply-btn,
+            .edit-form-inner .save-edit-btn {
+                background-color: var(--comment-form-submit-button-bg, #007bff);
+                color: var(--comment-form-submit-button-color, white);
+            }
+
+            .reply-form-inner .submit-reply-btn:hover,
+            .edit-form-inner .save-edit-btn:hover {
+                background-color: var(--comment-form-submit-button-hover-bg, #0056b3);
+            }
+
+            /* Кнопка Отмена */
+            .reply-form-inner .cancel-reply-btn,
+            .edit-form-inner .cancel-edit-btn {
+                background-color: var(--comment-form-cancel-button-bg, #f8f9fa);
+                color: var(--comment-form-cancel-button-color, #333);
+                border: 1px solid var(--comment-form-cancel-button-border, #ccc);
+            }
+
+            .reply-form-inner .cancel-reply-btn:hover,
+            .edit-form-inner .cancel-edit-btn:hover {
+                background-color: var(--comment-form-cancel-button-hover-bg, #e2e6ea);
+            }
+
+            .actions button.like-btn.liked {
+                color: var(--comment-like-icon-liked-color, #dc3545);
+                font-weight: bold;
+            }
+
+            /* Добавляем правило для иконки внутри лайкнутой кнопки */
+            .actions button.like-btn.liked .likes-icon {
+                color: var(--comment-like-icon-liked-color, #dc3545);
+            }
+        </style>
+
+        <div class="comment-container">
+            <div class="comment-header">
+                <div style="display: flex; align-items: center;">
+                    <span class="new-badge" id="new-badge">Новое</span>
+                    <span class="author" id="author"></span>
+                </div>
+                <span class="timestamp">
+                    <span id="date"></span>
+                    <span class="edited-mark" id="edited-mark">(ред.)</span>
+                </span>
+            </div>
+
+            <div class="text" id="text"></div>
+
+            <!-- Блок для вложений -->
+            <div class="attachment" id="attachment-container" style="display: none;">
+                <img id="attachment-img" src="" alt="Вложение">
+            </div>
+
+            <div class="actions">
+                <button class="reply-btn">Ответить</button>
+                <button class="edit-btn">Редактировать</button>
+                <button class="like-btn">
+                    <span class="likes-icon">&#x2764;</span>
+                    Нравится
+                </button>
+                <span class="likes" id="likes"></span>
+            </div>
+
+            <div class="reply-form" style="display: none;">
+
+            </div>
+            <div class="toggle-replies" style="display: none;">
+                <button class="toggle-replies-btn">
+
+                </button>
+            </div>
+            <div class="replies">
+                <slot name="replies"></slot>
+            </div>
+        </div>
+    </template>
+
+    <!-- Шаблон для секции комментариев -->
+    <template id="comment-section-template">
+        <style>
+            :host {
+                display: block;
+                font-family: var(--comment-font-family, sans-serif);
+            }
+
+            /* Стили для формы ввода нового комментария */
+            .comment-form {
+                position: relative;
+            }
+
+            .comment-form textarea {
+                width: 98%;
+                min-height: 60px;
+                margin-bottom: 10px;
+                padding: 10px;
+                border: 1px solid var(--comment-form-border-color, #ccc);
+                border-radius: var(--comment-form-border-radius, 4px);
+                resize: vertical;
+                box-sizing: border-box;
+                background-color: var(--comment-textarea-bg, #fff);
+                color: var(--comment-textarea-color, #333);
+            }
+
+            .comment-form textarea:focus {
+                border-color: var(--comment-form-border-focus-color, #007bff);
+                outline: none;
+                box-shadow: var(--comment-textarea-focus-shadow, 0 0 0 2px rgba(0, 123, 255, 0.25));
+            }
+
+            .form-actions {
+                display: flex;
+                align-items: center;
+            }
+
+            .comment-form button {
+                padding: 10px 15px;
+                background-color: var(--comment-form-submit-button-bg, #007bff);
+                color: var(--comment-form-submit-button-color, white);
+                border: none;
+                border-radius: var(--comment-form-border-radius, 4px);
+                cursor: pointer;
+                transition: background-color 0.2s;
+                margin-right: 10px;
+            }
+
+            .comment-form button:hover {
+                background-color: var(--comment-form-submit-button-hover-bg, #0056b3);
+            }
+
+            .comment-form button:disabled {
+                background-color: #cccccc;
+                cursor: not-allowed;
+            }
+
+            /* Стили для ссылки загрузки файла */
+            .attachment-link {
+                color: var(--comment-action-button-color, #007bff);
+                cursor: pointer;
+                margin-left: 10px;
+                font-size: 0.9em;
+                position: relative;
+                display: flex;
+                align-items: center;
+            }
+
+            .attachment-link:hover {
+                text-decoration: underline;
+            }
+
+            .attachment-link input[type="file"] {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                opacity: 0;
+                cursor: pointer;
+            }
+
+            /* Превью загруженного изображения */
+            .attachment-preview {
+                margin-top: 10px;
+                max-width: 100px;
+                /* Уменьшаем максимальную ширину */
+                display: none;
+                position: relative;
+            }
+
+            .attachment-preview img {
+                max-width: 100%;
+                max-height: 80px;
+                /* Уменьшаем максимальную высоту */
+                border-radius: 4px;
+                border: 1px solid var(--comment-form-border-color, #ccc);
+                cursor: pointer;
+                /* Указываем, что изображение кликабельно */
+            }
+
+            .attachment-preview .remove-attachment {
+                position: absolute;
+                top: -8px;
+                right: -8px;
+                background-color: rgba(255, 255, 255, 0.8);
+                color: #dc3545;
+                border-radius: 50%;
+                width: 20px;
+                height: 20px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                font-weight: bold;
+                border: 1px solid #dc3545;
+                font-size: 12px;
+            }
+
+            .attachment-preview .remove-attachment:hover {
+                background-color: #dc3545;
+                color: white;
+            }
+
+            .comments-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-top: 20px;
+                padding-bottom: 10px;
+                border-bottom: 1px solid var(--comment-header-border-color, #eee);
+                color: var(--comment-header-color, #333);
+            }
+
+            .comments-count {
+                font-weight: bold;
+            }
+
+            .comments-filter select {
+                padding: 5px;
+                margin-left: 5px;
+                border-radius: var(--comment-form-border-radius, 4px);
+                border: 1px solid var(--comment-form-border-color, #ccc);
+                background-color: var(--comment-select-bg, #fff);
+                color: var(--comment-select-color, #333);
+            }
+
+            .comments-list {
+                margin-top: 15px;
+            }
+
+            .comment-form textarea:focus::placeholder {
+                color: transparent;
+            }
+
+            /* Модальное окно для просмотра изображений */
+            .modal-overlay {
+                display: none;
+                position: fixed;
+                z-index: 9999;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.8);
+            }
+
+            .modal-content {
+                position: relative;
+                width: 80%;
+                max-width: 800px;
+                margin: 10% auto 0;
+                text-align: center;
+            }
+
+            #modal-image {
+                max-width: 100%;
+                max-height: 80vh;
+                border-radius: 4px;
+            }
+
+            .modal-close {
+                position: absolute;
+                top: -30px;
+                right: 0;
+                font-size: 28px;
+                font-weight: bold;
+                color: white;
+                cursor: pointer;
+                background-color: rgba(0, 0, 0, 0.5);
+                border: 2px solid white;
+                border-radius: 50%;
+                width: 30px;
+                height: 30px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 0;
+                z-index: 10000;
+            }
+        </style>
+
+        <div class="comment-form">
+            <textarea placeholder="Добавить комментарий" aria-label="Добавить комментарий"></textarea>
+
+            <div class="attachment-preview">
+                <img id="preview-image" src="" alt="Превью">
+                <div class="remove-attachment" title="Удалить вложение">✕</div>
+            </div>
+
+            <div class="form-actions">
+                <button>Отправить</button>
+                <div class="attachment-link">
+                    <span>📎 Прикрепить файл</span>
+                    <input type="file" accept="image/*,.gif" title="Выберите изображение или GIF">
+                </div>
+            </div>
+        </div>
+
+        <div class="comments-header">
+            <span class="comments-count">Комментарии (0)</span>
+            <div class="comments-filter">
+                <span>Сортировать по:</span>
+                <select>
+                    <option value="newest">Сначала новые</option>
+                    <option value="oldest">Сначала старые</option>
+                    <option value="popular">Сначала популярные</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="comments-list">
+        </div>
+
+        <!-- Модальное окно - максимально упрощенное -->
+        <div class="modal-overlay" id="image-modal">
+            <div class="modal-content">
+                <button class="modal-close" id="close-modal">&times;</button>
+                <img id="modal-image" src="" alt="Увеличенное изображение">
+            </div>
+        </div>
+    </template>
+
+    <script type="module" src="app.js"></script>
+</body>
+
+</html>

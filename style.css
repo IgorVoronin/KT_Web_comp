@@ -1,0 +1,139 @@
+/* Общие стили для страницы */
+body {
+    font-family: var(--comment-font-family, sans-serif);
+    margin: 20px;
+    background-color: var(--page-bg, #f4f4f4);
+    color: var(--page-text-color, #212529);
+    /* Обновлен дефолт для текста */
+    transition: background-color 0.3s, color 0.3s;
+}
+
+header,
+main {
+    background-color: var(--container-bg, #fff);
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s;
+}
+
+/* Стили переключателя темы */
+.theme-switcher {
+    margin-top: 15px;
+    display: flex;
+    align-items: center;
+}
+
+.theme-switcher label {
+    margin-right: 10px;
+}
+
+/* --- Темы --- */
+
+
+:root {
+    /* Основные переменные страницы */
+    --page-bg: #f4f4f4;
+    --page-text-color: #212529;
+    --container-bg: #fff;
+
+    /* Общие переменные для компонентов */
+    --comment-font-family: sans-serif;
+    --comment-form-border-radius: 4px;
+    --comment-actions-gap: 15px;
+
+    /* CommentItem */
+    --comment-item-bg: #fff;
+    --comment-item-border-color: #e0e0e0;
+    --comment-item-border-radius: 5px;
+    --comment-item-padding: 10px 15px;
+    --comment-item-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    --comment-text-color: #555;
+    --comment-author-color: #333;
+    --comment-meta-color: #888;
+    --comment-new-badge-bg: #28a745;
+    --comment-new-badge-color: white;
+    --comment-action-button-color: #007bff;
+    --comment-like-icon-color: #6c757d;
+    --comment-like-icon-liked-color: #dc3545;
+    --comment-reply-indent-color: #eee;
+
+    /* Формы комментариев */
+    --comment-form-border-color: #ccc;
+    --comment-form-border-focus-color: #007bff;
+    --comment-textarea-bg: #fff;
+    --comment-textarea-color: #333;
+    --comment-textarea-focus-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+    --comment-form-submit-button-bg: #007bff;
+    --comment-form-submit-button-hover-bg: #0056b3;
+    --comment-form-submit-button-color: white;
+    --comment-form-cancel-button-bg: #f8f9fa;
+    --comment-form-cancel-button-hover-bg: #e2e6ea;
+    --comment-form-cancel-button-color: #333;
+    --comment-form-cancel-button-border: #ccc;
+
+    /* CommentSection */
+    --comment-header-border-color: #eee;
+    --comment-header-color: #333;
+    --comment-select-bg: #fff;
+    --comment-select-color: #333;
+}
+
+/* Светлая тема. */
+
+body {
+    --page-bg: #f4f4f4;
+    --page-text-color: #212529;
+    --container-bg: #fff;
+}
+
+/* Темная тема */
+body[data-theme="dark"] {
+    /* Стили страницы и контейнеров */
+    --page-bg: #212529;
+    --page-text-color: #dee2e6;
+    --container-bg: #343a40;
+
+
+    /* CommentItem */
+    --comment-item-bg: #3e444a;
+    /* Более темный фон для коммента */
+    --comment-item-border-color: #5a6268;
+    /* Более темная рамка */
+    --comment-text-color: #f8f9fa;
+    /* Светлый текст */
+    --comment-author-color: #ced4da;
+    /* Светло-серый автор */
+    --comment-meta-color: #adb5bd;
+    /* Серый для времени/лайков */
+    --comment-new-badge-bg: #ffc107;
+    --comment-new-badge-color: #212529;
+    /* Темный текст на желтом */
+    --comment-action-button-color: #adb5bd;
+    /* Светлые кнопки действий */
+    --comment-like-icon-color: #adb5bd;
+    /* Цвет нелайкнутого */
+    --comment-like-icon-liked-color: #e44d26;
+    --comment-reply-indent-color: #5a6268;
+
+    /* Формы внутри CommentItem */
+    --comment-form-border-color: #6c757d;
+    --comment-form-border-focus-color: #adb5bd;
+    --comment-textarea-bg: #495057;
+    --comment-textarea-color: #f8f9fa;
+    --comment-form-submit-button-bg: #17a2b8;
+    --comment-form-submit-button-hover-bg: #138496;
+    --comment-form-submit-button-color: #fff;
+    --comment-form-cancel-button-bg: #6c757d;
+    --comment-form-cancel-button-color: #fff;
+    --comment-form-cancel-button-border: #6c757d;
+
+    /* CommentSection (форма ввода, заголовок) */
+    --comment-header-border-color: #5a6268;
+    --comment-header-color: #f8f9fa;
+    --comment-select-bg: #495057;
+    --comment-select-color: #f8f9fa;
+    --comment-font-family: sans-serif;
+
+}
