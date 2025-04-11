@@ -290,13 +290,13 @@ class CommentItem extends HTMLElement {
             }
         });
 
-        // Фокусируемся на поле ввода
+
         setTimeout(() => textarea.focus(), 0);
 
         return formContainer;
     }
 
-    // Вспомогательный метод для конвертации файла в Base64
+
     _fileToBase64(file) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -314,13 +314,13 @@ class CommentItem extends HTMLElement {
         }
 
         const replyFormContainer = this.shadowRoot.querySelector('.reply-form');
-        const actionsElement = this.shadowRoot.querySelector('.actions'); // Находим кнопки действий
+        const actionsElement = this.shadowRoot.querySelector('.actions');
 
         if (replyFormContainer && actionsElement) {
-            // Скрываем основные кнопки действий
+
             actionsElement.style.display = 'none';
 
-            // Показываем форму ответа
+
             replyFormContainer.innerHTML = '';
             const form = this._createReplyForm();
             replyFormContainer.appendChild(form);
@@ -331,19 +331,19 @@ class CommentItem extends HTMLElement {
     // Метод для скрытия и очистки формы ответа
     _hideReplyForm() {
         const replyFormContainer = this.shadowRoot.querySelector('.reply-form');
-        const actionsElement = this.shadowRoot.querySelector('.actions'); // Находим кнопки действий
+        const actionsElement = this.shadowRoot.querySelector('.actions');
 
         if (replyFormContainer) {
             replyFormContainer.style.display = 'none';
             replyFormContainer.innerHTML = '';
         }
-        // Показываем основные кнопки действий
+
         if (actionsElement) {
             actionsElement.style.display = 'flex';
         }
     }
 
-    // --- Методы для редактирования (План с отдельной формой) --- 
+    // --- Методы для редактирования --- 
     _createEditForm() {
         const formContainer = document.createElement('div');
         formContainer.classList.add('edit-form-inner');
@@ -392,7 +392,7 @@ class CommentItem extends HTMLElement {
     enableEditMode() {
         // Проверяем, не открыта ли форма ответа
         if (this.shadowRoot.querySelector('.reply-form-inner')) {
-            this._hideReplyForm(); // Сначала скрываем форму ответа
+            this._hideReplyForm();
         }
 
         const textElement = this.shadowRoot.querySelector('.text');
@@ -423,11 +423,10 @@ class CommentItem extends HTMLElement {
         if (actionsElement) {
             actionsElement.style.display = 'flex';
         }
-        // Не нужно восстанавливать текст, так как форма удаляется
-        // и при следующей перерисовке текст возьмется из commentData
-        delete this._originalText; // Убираем ненужное свойство
+
+        delete this._originalText;
     }
-    // --- Конец методов для редактирования ---
+
 
     // --- Новый метод для проверки свежести комментария ---
     isCommentNew(timestamp) {
@@ -435,9 +434,7 @@ class CommentItem extends HTMLElement {
 
         const commentDate = new Date(timestamp);
         const currentDate = new Date();
-        // Разница в миллисекундах
         const timeDiff = currentDate - commentDate;
-        // 24 часа в миллисекундах
         const oneDayInMs = 24 * 60 * 60 * 1000;
 
         // Комментарий считается новым, если он был создан менее 24 часов назад
@@ -459,14 +456,10 @@ class CommentItem extends HTMLElement {
 
         this.setAttribute('data-comment-id', id);
 
-        // Убедимся, что форма редактирования удалена при перерисовке
-        // (на случай если render вызван до disableEditMode)
         this.shadowRoot.querySelector('.edit-form-inner')?.remove();
 
-        // Очищаем текущее содержимое shadow DOM
         this.shadowRoot.innerHTML = '';
 
-        // Получаем шаблон из документа
         const template = document.getElementById('comment-item-template');
         if (!template) {
             console.error('Template not found: comment-item-template');
@@ -517,12 +510,12 @@ class CommentItem extends HTMLElement {
         if (attachment) {
             attachmentContainer.style.display = 'block';
             attachmentImg.src = attachment;
-            // Устанавливаем правильный alt-текст
+
             attachmentImg.alt = `Вложение от ${author}`;
 
-            // Добавляем обработчик клика по изображению для открытия в родительском модальном окне
+
             attachmentImg.addEventListener('click', (event) => {
-                event.stopPropagation(); // Останавливаем распространение
+                event.stopPropagation();
                 this.dispatchEvent(new CustomEvent('open-image', {
                     bubbles: true,
                     composed: true,
@@ -548,36 +541,35 @@ class CommentItem extends HTMLElement {
             likeButton.setAttribute('aria-pressed', 'false');
         }
 
-        // Состояние свернутости replies
         if (this._repliesCollapsed) {
             repliesContainer.classList.add('replies-collapsed');
         } else {
             repliesContainer.classList.remove('replies-collapsed');
         }
 
-        // Добавляем заполненный шаблон в shadow DOM
+
         this.shadowRoot.appendChild(instance);
 
-        // Проверяем наличие ответов для обновления кнопки переключения
+
         let replyCount = 0;
         const checkRepliesInterval = setInterval(() => {
             const repliesSlot = this.shadowRoot.querySelector('slot[name="replies"]');
             if (repliesSlot) {
                 replyCount = repliesSlot.assignedNodes({ flatten: true }).filter(node => node.nodeName === 'COMMENT-ITEM').length;
-                // Обновляем кнопку только если нашли слот и кол-во ответов > 1
+
                 this._updateToggleRepliesButton(replyCount);
-                clearInterval(checkRepliesInterval); // Останавливаем проверку
+                clearInterval(checkRepliesInterval);
             } else if (this.shadowRoot.isConnected === false) {
-                // Если компонент отключен до нахождения слота, останавливаем
+
                 clearInterval(checkRepliesInterval);
             }
-        }, 50); // Проверяем с небольшой задержкой
+        }, 50);
 
-        // Запускаем таймер очистки, если компонент будет быстро удален
+
         setTimeout(() => clearInterval(checkRepliesInterval), 2000);
     }
 
-    // Новый метод для обновления текста и видимости кнопки сворачивания
+
     _updateToggleRepliesButton(replyCount) {
         const toggleContainer = this.shadowRoot.querySelector('.toggle-replies');
         const toggleButton = this.shadowRoot.querySelector('.toggle-replies-btn');
